@@ -65,7 +65,7 @@ public class TemplateTest {
         Template template = Template.from(
                 new BufferedReader(
                         new InputStreamReader(
-                                getClass().getResourceAsStream("/template1/input.html"))));
+                                getClass().getResourceAsStream("/template1/input.html"))), true);
         Map<String, Object> context = new HashMap<>();
         context.put("title", "Home");
         context.put("name", "Person");

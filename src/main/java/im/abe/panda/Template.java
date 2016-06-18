@@ -4,16 +4,19 @@ import im.abe.panda.internal.Interpreter;
 import im.abe.panda.internal.TemplateParser;
 import im.abe.panda.internal.ast.Node;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * A renderable template.
  * Construct an instance using the {@link #from(String)}, {@link #from(File)},
- * or {@link #from(BufferedReader)} methods.
+ * or {@link #from(BufferedReader, boolean)} methods.
  */
 public class Template {
     @NotNull
@@ -22,6 +25,9 @@ public class Template {
     private Interpreter interpreter;
     @NotNull
     private Escape escapeStrategy;
+
+    @Nullable
+    private static Map<Object, Template> cache = new HashMap<>();
 
     /**
      * Construct a new Template instance.
@@ -96,8 +102,14 @@ public class Template {
      * @return The constructed template.
      */
     public static Template from(String text) {
+        // would use Java 8 patterns here, but lambda allocation possibly too slow
+        if (cache != null && cache.containsKey(text))
+            return cache.get(text);
+
         try {
-            return from(new BufferedReader(new StringReader(text)));
+            Template template = from(new BufferedReader(new StringReader(text)), true);
+            cache.put(text, template);
+            return template;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -111,17 +123,39 @@ public class Template {
      * @throws IOException If an IO error occurs while reading the file.
      */
     public static Template from(File file) throws IOException {
-        return from(new BufferedReader(new FileReader(file)));
+        if (cache != null && cache.containsKey(file))
+            return cache.get(file);
+
+        Template template = from(new BufferedReader(new FileReader(file)), true);
+        cache.put(file, template);
+        return template;
+    }
+
+    /**
+     * Create a new template instance from the given template file.
+     *
+     * @param url The template URL.
+     * @return The constructed template.
+     * @throws IOException If an IO error occurs while reading.
+     */
+    public static Template from(URL url) throws IOException {
+        if (cache != null && cache.containsKey(url))
+            return cache.get(url);
+
+        Template template = from(new BufferedReader(new InputStreamReader(url.openStream())), true);
+        cache.put(url, template);
+        return template;
     }
 
     /**
      * Create a new template instance from the given template input.
      *
      * @param reader The template input reader.
+     * @param close  Whether to close the reader after reading.
      * @return The constructed template.
      * @throws IOException If an IO error occurs while reading.
      */
-    public static Template from(BufferedReader reader) throws IOException {
+    public static Template from(BufferedReader reader, boolean close) throws IOException {
         TemplateParser parser = new TemplateParser(reader);
         List<Node> rootNodes = new ArrayList<>();
         while (true) {
@@ -130,6 +164,9 @@ public class Template {
                 break;
             rootNodes.add(node);
         }
+
+        if (close)
+            reader.close();
 
         return new Template(rootNodes, new Interpreter(), Escape.HTML);
     }
