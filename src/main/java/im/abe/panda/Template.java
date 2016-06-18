@@ -1,5 +1,6 @@
 package im.abe.panda;
 
+import im.abe.panda.internal.Interpreter;
 import im.abe.panda.internal.TemplateParser;
 import im.abe.panda.internal.ast.Node;
 import org.jetbrains.annotations.NotNull;

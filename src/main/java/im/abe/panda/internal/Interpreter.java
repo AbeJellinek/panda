@@ -1,5 +1,6 @@
-package im.abe.panda;
+package im.abe.panda.internal;
 
+import im.abe.panda.Template;
 import im.abe.panda.internal.ast.Node;
 import im.abe.panda.internal.ast.Text;
 import im.abe.panda.internal.ast.Variable;
