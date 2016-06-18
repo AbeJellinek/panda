@@ -28,9 +28,9 @@ public class Interpreter {
             Value value = (Value) node;
             Object evaluated = evaluate(value, context);
             if (value.isRaw()) {
-                writer.write(String.valueOf(evaluated));
+                writer.write(evaluated == null ? "" : evaluated.toString());
             } else {
-                writer.write(template.escape(String.valueOf(evaluated)));
+                writer.write(template.escape(String.valueOf(evaluated == null ? "" : evaluated.toString())));
             }
         }
 

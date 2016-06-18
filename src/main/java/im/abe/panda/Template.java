@@ -10,7 +10,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A renderable template. This class serves as an abstraction over the actual template implementation.
+ * A renderable template.
+ * Construct an instance using the {@link #from(String)}, {@link #from(File)},
+ * or {@link #from(BufferedReader)} methods.
  */
 public class Template {
     @NotNull
@@ -20,6 +22,13 @@ public class Template {
     @NotNull
     private Escape escapeStrategy;
 
+    /**
+     * Construct a new Template instance.
+     *
+     * @param rootNodes      The top-level nodes of the template.
+     * @param interpreter    The interpreter instance to use.
+     * @param escapeStrategy The variable escape strategy to be used by this template.
+     */
     private Template(@NotNull List<Node> rootNodes, @NotNull Interpreter interpreter,
                      @NotNull Escape escapeStrategy) {
         this.rootNodes = rootNodes;
@@ -27,28 +36,54 @@ public class Template {
         this.escapeStrategy = escapeStrategy;
     }
 
+    /**
+     * Set this template's escape strategy.
+     * Don't mess with this if you don't know what you're doing!
+     *
+     * @param escapeStrategy The new escape strategy to use.
+     * @return This template instance, for chaining.
+     */
     public Template escapeStrategy(@NotNull Escape escapeStrategy) {
         this.escapeStrategy = escapeStrategy;
         return this;
     }
 
-    public String writeToString(@NotNull Map<String, Object> context) {
+    /**
+     * Renders this template to a {@code String} and returns it.
+     *
+     * @param context The key-value context map to use. This defines variables accessible to the template.
+     * @return The template, rendered to a {@code String} with the given context.
+     */
+    public String renderToString(@NotNull Map<String, Object> context) {
         StringWriter writer = new StringWriter();
         try {
-            write(new BufferedWriter(writer), context);
+            render(new BufferedWriter(writer), context);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         return writer.toString();
     }
 
-    public void write(@NotNull BufferedWriter writer, @NotNull Map<String, Object> context) throws IOException {
+    /**
+     * Renders this template to the given {@link BufferedWriter}.
+     *
+     * @param writer  The writer to render to.
+     * @param context The key-value context map to use. This defines variables accessible to the template.
+     * @throws IOException If an IO error occurs while writing.
+     */
+    public void render(@NotNull BufferedWriter writer, @NotNull Map<String, Object> context) throws IOException {
         for (Node node : rootNodes) {
             interpreter.execute(this, node, context, writer);
             writer.flush();
         }
     }
 
+    /**
+     * Create a new template instance from the given template string.
+     *
+     * @param text The template string.
+     * @return The constructed template.
+     */
     public static Template from(String text) {
         try {
             return from(new BufferedReader(new StringReader(text)));
@@ -57,10 +92,24 @@ public class Template {
         }
     }
 
+    /**
+     * Create a new template instance from the given template file.
+     *
+     * @param file The template file.
+     * @return The constructed template.
+     * @throws IOException If an IO error occurs while reading the file.
+     */
     public static Template from(File file) throws IOException {
         return from(new BufferedReader(new FileReader(file)));
     }
 
+    /**
+     * Create a new template instance from the given template input.
+     *
+     * @param reader The template input reader.
+     * @return The constructed template.
+     * @throws IOException If an IO error occurs while reading.
+     */
     public static Template from(BufferedReader reader) throws IOException {
         TemplateParser parser = new TemplateParser(reader);
         List<Node> rootNodes = new ArrayList<>();
@@ -74,17 +123,14 @@ public class Template {
         return new Template(rootNodes, new Interpreter(), Escape.HTML);
     }
 
+    /**
+     * Escape the given string using this template's escape strategy.
+     * {@link Escape#HTML} will escape dangerous HTML characters. {@link Escape#NONE} won't escape anything.
+     *
+     * @param text The input text to be escaped.
+     * @return The text, escaped as appropriate.
+     */
     String escape(String text) {
-        switch (escapeStrategy) {
-            case HTML:
-                return text
-                        .replace("&", "&amp;")
-                        .replace("<", "&lt;")
-                        .replace(">", "&gt;")
-                        .replace("\"", "&quot;")
-                        .replace("'", "&#39;");
-            default:
-                return text;
-        }
+        return escapeStrategy.on(text);
     }
 }

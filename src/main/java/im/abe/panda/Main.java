@@ -13,6 +13,6 @@ public class Main {
         });
         context.put("message", "Hi.");
 
-        System.out.println(template.writeToString(context));
+        System.out.println(template.renderToString(context));
     }
 }
