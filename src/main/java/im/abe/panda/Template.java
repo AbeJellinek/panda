@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
-import java.net.URL;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,13 +19,27 @@ import java.util.Map;
  * or {@link #from(BufferedReader, boolean)} methods.
  */
 public class Template {
+    /**
+     * The top-level nodes in this template.
+     */
     @NotNull
     private List<Node> rootNodes;
+
+    /**
+     * The interpreter instance used by this template.
+     */
     @NotNull
     private Interpreter interpreter;
+
+    /**
+     * The escape strategy to use.
+     */
     @NotNull
     private Escape escapeStrategy;
 
+    /**
+     * The cache to store loaded templates in. Can be null.
+     */
     @Nullable
     private static Map<Object, Template> cache = new HashMap<>();
 
@@ -108,7 +122,8 @@ public class Template {
 
         try {
             Template template = from(new BufferedReader(new StringReader(text)), true);
-            cache.put(text, template);
+            if (cache != null)
+                cache.put(text, template);
             return template;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -126,24 +141,26 @@ public class Template {
         if (cache != null && cache.containsKey(file))
             return cache.get(file);
 
-        Template template = from(new BufferedReader(new FileReader(file)), true);
-        cache.put(file, template);
+        Template template = from(new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8")), true);
+        if (cache != null)
+            cache.put(file, template);
         return template;
     }
 
     /**
      * Create a new template instance from the given template file.
      *
-     * @param url The template URL.
+     * @param uri The template URI.
      * @return The constructed template.
      * @throws IOException If an IO error occurs while reading.
      */
-    public static Template from(URL url) throws IOException {
-        if (cache != null && cache.containsKey(url))
-            return cache.get(url);
+    public static Template from(URI uri) throws IOException {
+        if (cache != null && cache.containsKey(uri))
+            return cache.get(uri);
 
-        Template template = from(new BufferedReader(new InputStreamReader(url.openStream())), true);
-        cache.put(url, template);
+        Template template = from(new BufferedReader(new InputStreamReader(uri.toURL().openStream(), "UTF-8")), true);
+        if (cache != null)
+            cache.put(uri, template);
         return template;
     }
 
@@ -169,5 +186,22 @@ public class Template {
             reader.close();
 
         return new Template(rootNodes, new Interpreter(), Escape.HTML);
+    }
+
+    /**
+     * Sets the enabled status of the global template cache.
+     *
+     * @param enabled Whether to automatically cache templates.
+     */
+    public static void cacheEnabled(boolean enabled) {
+        cache = enabled ? new HashMap<>() : null;
+    }
+
+    /**
+     * Flushes the template cache, if one is present.
+     */
+    public static void flushCache() {
+        if (cache != null)
+            cache.clear();
     }
 }
