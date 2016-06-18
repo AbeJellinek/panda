@@ -2,10 +2,21 @@ package im.abe.panda.internal.ast;
 
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * A purely text, static AST node.
+ */
 public class Text implements Node {
+    /**
+     * The node's value.
+     */
     @NotNull
     private String value;
 
+    /**
+     * Construct a new text node with the given value.
+     *
+     * @param value The value.
+     */
     public Text(@NotNull String value) {
         this.value = value;
     }

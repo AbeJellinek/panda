@@ -3,7 +3,7 @@ package im.abe.panda.internal;
 import im.abe.panda.Escape;
 import im.abe.panda.internal.ast.Node;
 import im.abe.panda.internal.ast.Text;
-import im.abe.panda.internal.ast.Value;
+import im.abe.panda.internal.ast.Variable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -94,7 +94,7 @@ public class TemplateParser {
      * @throws IOException If an IO error occurs while reading.
      */
     @Nullable
-    private Value parseValue() throws IOException {
+    private Variable parseValue() throws IOException {
         StringBuilder builder = new StringBuilder();
         reader.mark(1);
         boolean raw = reader.read() == '^';
@@ -128,17 +128,17 @@ public class TemplateParser {
      * @return The produced value node.
      */
     @Nullable
-    private Value splitValue(String path, boolean raw) {
+    private Variable splitValue(String path, boolean raw) {
         if (path.indexOf('.') != -1) {
             String[] parts = path.split("\\.");
-            Value value = null;
+            Variable variable = null;
             for (String part : parts) {
-                value = new Value(value, part, raw);
+                variable = new Variable(variable, part, raw);
             }
 
-            return value;
+            return variable;
         } else {
-            return new Value(null, path, raw);
+            return new Variable(null, path, raw);
         }
     }
 }

@@ -2,7 +2,7 @@ package im.abe.panda;
 
 import im.abe.panda.internal.ast.Node;
 import im.abe.panda.internal.ast.Text;
-import im.abe.panda.internal.ast.Value;
+import im.abe.panda.internal.ast.Variable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,7 +15,19 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 
+/**
+ * The main runtime interpreter for template instances.
+ */
 public class Interpreter {
+    /**
+     * Render the given node to an output.
+     *
+     * @param template The template to render within.
+     * @param node     The node.
+     * @param context  The variable context to access.
+     * @param writer   The output to write to.
+     * @throws IOException If an IO error occurs while writing.
+     */
     public void execute(@NotNull Template template,
                         @NotNull Node node,
                         @NotNull Map<String, Object> context,
@@ -24,10 +36,10 @@ public class Interpreter {
         if (node instanceof Text) {
             Text text = (Text) node;
             writer.write(text.getValue());
-        } else if (node instanceof Value) {
-            Value value = (Value) node;
-            Object evaluated = evaluate(value, context);
-            if (value.isRaw()) {
+        } else if (node instanceof Variable) {
+            Variable variable = (Variable) node;
+            Object evaluated = evaluate(variable, context);
+            if (variable.isRaw()) {
                 writer.write(evaluated == null ? "" : evaluated.toString());
             } else {
                 writer.write(template.escape(String.valueOf(evaluated == null ? "" : evaluated.toString())));
@@ -36,19 +48,26 @@ public class Interpreter {
 
     }
 
+    /**
+     * Evaluate the given variable in the context. Tries both getters and direct field access.
+     *
+     * @param variable The variable to access.
+     * @param context  The context to find it in.
+     * @return The variable's value, or null if not found.
+     */
     @Nullable
-    private Object evaluate(Value value, Map<String, Object> context) {
-        if (value.getLeft() != null) {
-            Object left = evaluate(value.getLeft(), context);
+    private Object evaluate(Variable variable, Map<String, Object> context) {
+        if (variable.getLeft() != null) {
+            Object left = evaluate(variable.getLeft(), context);
             if (left == null) {
                 return null;
             } else if (left instanceof Map<?, ?>) {
-                return ((Map<?, ?>) left).get(value.getName());
+                return ((Map<?, ?>) left).get(variable.getName());
             } else {
-                return tryGetter(value.getName(), left);
+                return tryGetter(variable.getName(), left);
             }
         } else {
-            return context.get(value.getName());
+            return context.get(variable.getName());
         }
     }
 
