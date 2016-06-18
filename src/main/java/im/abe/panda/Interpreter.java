@@ -42,7 +42,7 @@ public class Interpreter {
             if (variable.isRaw()) {
                 writer.write(evaluated == null ? "" : evaluated.toString());
             } else {
-                writer.write(template.escape(String.valueOf(evaluated == null ? "" : evaluated.toString())));
+                writer.write(template.getEscapeStrategy().on(String.valueOf(evaluated == null ? "" : evaluated.toString())));
             }
         }
 

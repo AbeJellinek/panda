@@ -37,6 +37,16 @@ public class Template {
     }
 
     /**
+     * Returns this template's current escape strategy.
+     *
+     * @return The escape strategy.
+     */
+    @NotNull
+    public Escape getEscapeStrategy() {
+        return escapeStrategy;
+    }
+
+    /**
      * Set this template's escape strategy.
      * Don't mess with this if you don't know what you're doing!
      *
@@ -121,16 +131,5 @@ public class Template {
         }
 
         return new Template(rootNodes, new Interpreter(), Escape.HTML);
-    }
-
-    /**
-     * Escape the given string using this template's escape strategy.
-     * {@link Escape#HTML} will escape dangerous HTML characters. {@link Escape#NONE} won't escape anything.
-     *
-     * @param text The input text to be escaped.
-     * @return The text, escaped as appropriate.
-     */
-    String escape(String text) {
-        return escapeStrategy.on(text);
     }
 }

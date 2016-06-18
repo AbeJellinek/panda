@@ -1,32 +1,30 @@
 package im.abe.panda;
 
 /**
- * Enum representing possible escape strategies for text.
+ * A function that takes text and returns an escaped form of it.
  */
-public enum Escape {
-    NONE {
-        @Override
-        public String on(String input) {
-            return input;
-        }
-    }, HTML {
-        @Override
-        public String on(String input) {
-            return input
-                    .replace("&", "&amp;")
-                    .replace("<", "&lt;")
-                    .replace(">", "&gt;")
-                    .replace("\"", "&quot;")
-                    .replace("'", "&#39;");
-        }
-    };
+@FunctionalInterface
+public interface Escape {
+    /**
+     * Returns the input as-is.
+     */
+    public static final Escape NONE = input -> input;
+
+    /**
+     * Escapes dangerous HTML characters with their safe equivalents.
+     */
+    public static final Escape HTML = input -> input
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("\"", "&quot;")
+            .replace("'", "&#39;");
 
     /**
      * Escape the given string using this escape strategy.
-     * {@link #HTML} will escape dangerous HTML characters. {@link #NONE} won't escape anything.
      *
      * @param input The input text to be escaped.
      * @return The text, escaped as appropriate.
      */
-    public abstract String on(String input);
+    public String on(String input);
 }
