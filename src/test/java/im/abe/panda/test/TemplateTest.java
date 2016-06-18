@@ -1,5 +1,6 @@
 package im.abe.panda.test;
 
+import im.abe.panda.Escape;
 import im.abe.panda.Template;
 import org.junit.Test;
 
@@ -46,17 +47,19 @@ public class TemplateTest {
 
     @Test
     public void escaping() {
-        Template template = Template.from("Well, well, well. [[message]]");
-        Map<String, Object> context = new HashMap<>();
-        context.put("message", "<br>Look who we have here.");
+        Template template1 = Template.from("Well, well, well. [[message]]");
+        Map<String, Object> context1 = new HashMap<>();
+        context1.put("message", "<br>Look who we have here.");
 
-        assertEquals("Well, well, well. &lt;br&gt;Look who we have here.", template.renderToString(context));
+        assertEquals("Well, well, well. &lt;br&gt;Look who we have here.", template1.renderToString(context1));
 
-        template = Template.from("Well, well, well. [[^message]]");
-        context = new HashMap<>();
-        context.put("message", "<br>Look who we have here.");
+        Template template2 = Template.from("Well, well, well. [[^message]]");
+        Map<String, Object> context2 = new HashMap<>();
+        context2.put("message", "<br>Look who we have here.");
 
-        assertEquals("Well, well, well. <br>Look who we have here.", template.renderToString(context));
+        assertEquals("Well, well, well. <br>Look who we have here.", template2.renderToString(context2));
+        template1.escapeStrategy(Escape.NONE);
+        assertEquals(template1.renderToString(context1), template2.renderToString(context2));
     }
 
     @Test
