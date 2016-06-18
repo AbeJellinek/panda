@@ -3,23 +3,19 @@ package im.abe.panda.internal.ast;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
+import java.util.Objects;
 
 public class Value implements Node {
     @Nullable
     private Value left;
     @NotNull
     private String name;
+    private boolean raw;
 
-    public Value(@Nullable Value left, @NotNull String name) {
+    public Value(@Nullable Value left, @NotNull String name, boolean raw) {
         this.left = left;
         this.name = name;
-    }
-
-    @Override
-    public void writeTo(@NotNull BufferedWriter writer) throws IOException {
-        // TODO
+        this.raw = raw;
     }
 
     @Nullable
@@ -27,34 +23,28 @@ public class Value implements Node {
         return left;
     }
 
-    public void setLeft(@Nullable Value left) {
-        this.left = left;
-    }
-
     @NotNull
     public String getName() {
         return name;
     }
 
-    public void setName(@NotNull String name) {
-        this.name = name;
+    public boolean isRaw() {
+        return raw;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-
         Value value = (Value) o;
-
-        return left != null ? left.equals(value.left) : value.left == null && name.equals(value.name);
+        return raw == value.raw &&
+                Objects.equals(left, value.left) &&
+                Objects.equals(name, value.name);
     }
 
     @Override
     public int hashCode() {
-        int result = left != null ? left.hashCode() : 0;
-        result = 31 * result + name.hashCode();
-        return result;
+        return Objects.hash(left, name, raw);
     }
 
     @Override
@@ -62,6 +52,7 @@ public class Value implements Node {
         return "Value{" +
                 "left=" + left +
                 ", name='" + name + '\'' +
+                ", raw=" + raw +
                 '}';
     }
 }

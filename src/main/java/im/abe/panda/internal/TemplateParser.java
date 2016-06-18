@@ -26,7 +26,7 @@ public class TemplateParser {
         if (code == -1) {
             return null;
         } else {
-            if (code == '@') {
+            if (code == '[') {
                 return parseValue();
             } else {
                 return parseText(code);
@@ -45,7 +45,7 @@ public class TemplateParser {
             if (code == -1)
                 break;
 
-            if (code == '@') {
+            if (code == '[') {
                 reader.reset();
                 break;
             } else {
@@ -59,6 +59,10 @@ public class TemplateParser {
     @Nullable
     private Value parseValue() throws IOException {
         StringBuilder builder = new StringBuilder();
+        reader.mark(1);
+        boolean raw = reader.read() == '^';
+        if (!raw)
+            reader.reset();
 
         while (true) {
             reader.mark(1);
@@ -66,29 +70,28 @@ public class TemplateParser {
             if (code == -1)
                 break;
 
-            if (code == '@' || Character.isWhitespace(code)) {
-                reader.reset();
+            if (code == ']') {
                 break;
             } else {
                 builder.appendCodePoint(code);
             }
         }
 
-        return splitValue(builder.toString());
+        return splitValue(builder.toString(), raw);
     }
 
     @Nullable
-    private Value splitValue(String path) {
+    private Value splitValue(String path, boolean raw) {
         if (path.indexOf('.') != -1) {
             String[] parts = path.split("\\.");
             Value value = null;
             for (String part : parts) {
-                value = new Value(value, part);
+                value = new Value(value, part, raw);
             }
 
             return value;
         } else {
-            return new Value(null, path);
+            return new Value(null, path, raw);
         }
     }
 }

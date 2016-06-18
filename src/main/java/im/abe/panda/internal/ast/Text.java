@@ -2,29 +2,17 @@ package im.abe.panda.internal.ast;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-
 public class Text implements Node {
     @NotNull
     private String value;
 
-    public Text(String value) {
+    public Text(@NotNull String value) {
         this.value = value;
-    }
-
-    @Override
-    public void writeTo(@NotNull BufferedWriter writer) throws IOException {
-        writer.write(value);
     }
 
     @NotNull
     public String getValue() {
         return value;
-    }
-
-    public void setValue(@NotNull String value) {
-        this.value = value;
     }
 
     @Override
